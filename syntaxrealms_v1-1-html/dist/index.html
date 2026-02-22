@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>SyntaxRealms_v1.1.html</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Syntax Realms – NLP³ Adventure v1.1</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d001a; color: #e0d0ff; margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    #header { text-align: center; padding: 10px; background: linear-gradient(to bottom, #2a004a, #0d001a); border-bottom: 2px solid #6a4aff; }
+    #scene { flex: 1; padding: 15px; overflow-y: auto; background: rgba(10, 0, 30, 0.7); border-radius: 8px; margin: 10px 0; line-height: 1.5; }
+    #input-area { display: flex; padding: 10px; background: #1a0033; border-top: 2px solid #6a4aff; }
+    #command { flex: 1; padding: 12px; font-size: 16px; background: #220044; color: #fff; border: 1px solid #6a4aff; border-radius: 6px 0 0 6px; outline: none; }
+    #send { padding: 12px 20px; font-size: 16px; background: #6a4aff; color: white; border: none; border-radius: 0 6px 6px 0; cursor: pointer; }
+    #send:hover { background: #8a6fff; }
+    .tag { color: #ffcc00; font-weight: bold; }
+    .parser-log { font-size: 0.85em; color: #aaa; margin-top: 8px; }
+    button.small { font-size: 0.9em; padding: 6px 12px; margin: 4px; background: #4a2a8a; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h2>Syntax Realms – NLP³ Seed v1.1</h2>
+  <p>You are David, Human Host One. The engine sharpens.</p>
+</div>
+
+<div id="scene">
+  <strong>The campfire flickers in a misty glade of Syntax Realms.</strong><br><br>
+  Gob the goblin sits cross-legged, sharpening a tiny dagger. Lirael the luminous owl perches on a low branch, eyes like golden code. Elara's gift—a small crystal—glows faintly in your pack.<br><br>
+  The air hums with potential. Your words shape this world.<br><br>
+  <em>Try: "look around", "pick up crystal", "greet gob",<br>[SEQ: Look around. Greet Gob.],<br>[SEL: If Gob friendly, greet him. Else, hide.]</em><br><br>
+  <div id="log" class="parser-log"></div>
+</div>
+
+<div id="input-area">
+  <input type="text" id="command" placeholder="Your command..." autocomplete="off"/>
+  <button id="send">Send</button>
+</div>
+
+<div style="text-align:center; padding:8px;">
+  <button class="small" onclick="saveGame()">Save Progress</button>
+  <button class="small" onclick="loadGame()">Load Progress</button>
+  <button class="small" onclick="exportToChat()">Export to Grok</button>
+</div>
+
+<script>
+// Core Game State
+let state = {
+  location: "campfire_glade",
+  inventory: ["crystal_gift"],
+  npcs: { gob: { friendly: false, hp: 20 }, lirael: { present: true } },
+  turns: 0,
+  history: [],
+  waitingForClarify: null   // new: tracks if we asked A/B
+};
+
+const sceneDiv = document.getElementById('scene');
+const logDiv = document.getElementById('log');
+const input = document.getElementById('command');
+const sendBtn = document.getElementById('send');
+
+// Improved NLP³ Parser – v1.1
+function parseCommand(cmd) {
+  cmd = cmd.trim();
+  let originalCmd = cmd;
+  cmd = cmd.toLowerCase();
+  let log = "Parser: ";
+
+  // Handle clarifier response first
+  if (state.waitingForClarify) {
+    if (cmd === "a" || cmd === "b") {
+      let choice = cmd === "a" ? "greet" : "attack";
+      state.waitingForClarify = null;
+      log += `Clarifier resolved: chose ${choice}. `;
+      return { action: choice === "greet" ? "greet_gob" : "unknown", log };
+    } else {
+      return { action: "clarify_pending", log: "Waiting for A or B..." };
+    }
+  }
+
+  // Explicit tags first (higher priority)
+  const explicitMatch = cmd.match(/\[([A-Z]+):\s*(.*?)\]/i);
+  if (explicitMatch) {
+    const type = explicitMatch[1].toUpperCase();
+    const content = explicitMatch[2].trim();
+    log += `[${type}] detected → `;
+
+    if (type === "SEQ") {
+      const steps = content.split('.').map(s => s.trim()).filter(Boolean);
+      return { action: "sequence", steps, log: log + "sequence of " + steps.length + " steps" };
+    }
+    if (type === "SEL") {
+      let conditionMet = false;
+      if (content.toLowerCase().includes("if gob friendly") && state.npcs.gob.friendly) {
+        conditionMet = true;
+      }
+      log += conditionMet ? "condition true → " : "condition false → ";
+      return { action: "conditional", met: conditionMet, log };
+    }
+  }
+
+  // Regular English intents (improved priority order)
+  if (cmd.includes("pick up crystal") || cmd.includes("take crystal")) {
+    if (state.inventory.includes("crystal_gift")) {
+      return { action: "already_have", log: log + "already have crystal" };
+    }
+    state.inventory.push("crystal_gift");
+    return { action: "take_crystal", log: log + "item acquired" };
+  }
+  if (cmd.includes("look") || cmd.includes("around")) {
+    return { action: "look", log: log + "observe surroundings" };
+  }
+  if (cmd.includes("greet") || cmd.includes("talk to gob") || cmd.includes("say hi")) {
+    state.npcs.gob.friendly = true;
+    return { action: "greet_gob", log: log + "Gob friendly = true" };
+  }
+
+  // Rare explicifier (only ~5-10% chance, mostly on vague)
+  if (Math.random() > 0.92) {
+    state.waitingForClarify = true;
+    return { action: "clarify", question: "Do you mean greet Gob or attack him? (Type A or B)", log: log + "ambiguity → clarifying" };
+  }
+
+  return { action: "unknown", log: log + "intent unclear – try explicit tag or clearer words" };
+}
+
+// Execute
+function execute(result) {
+  let output = "";
+
+  if (result.action === "look") {
+    output = "The glade is quiet. Gob eyes you " + (state.npcs.gob.friendly ? "with a small grin" : "warily") + ". Lirael watches silently. Crystal pulses softly" + (state.inventory.includes("crystal_gift") ? " in your pack." : " in your pack.");
+  } else if (result.action === "greet_gob") {
+    output = "You nod warmly to Gob. <strong>Gob grins, lowers dagger.</strong> \"Not bad for a human,\" he mutters.";
+  } else if (result.action === "take_crystal") {
+    output = "You slip the crystal into your pack. It feels warm, full of untapped code.";
+  } else if (result.action === "already_have") {
+    output = "You already have the crystal.";
+  } else if (result.action === "sequence") {
+    let executed = [];
+    result.steps.forEach(step => {
+      let subCmd = step.toLowerCase();
+      if (subCmd.includes("look") || subCmd.includes("north")) executed.push("You look north… misty trees.");
+      if (subCmd.includes("greet") || subCmd.includes("gob")) {
+        state.npcs.gob.friendly = true;
+        executed.push("You greet Gob → he nods back.");
+      }
+    });
+    output = "Sequence executed: " + executed.join(" → ") || "nothing happened yet";
+  } else if (result.action === "conditional") {
+    if (result.met) {
+      state.npcs.gob.friendly = true;
+      output = "Gob is friendly → you greet him warmly. He smiles.";
+    } else {
+      output = "Gob is not friendly → you hide in the shadows for now.";
+    }
+  } else if (result.action === "clarify") {
+    output = `<strong>Parser asks:</strong> ${result.question}`;
+  } else if (result.action === "clarify_pending") {
+    output = "Still waiting for A or B...";
+  } else {
+    output = "The words echo... but the world waits for clearer intent. Try [SEQ: ...] or plain English.";
+  }
+
+  state.turns++;
+  state.history.push({ cmd: input.value, result: output });
+
+  sceneDiv.innerHTML += `<p><strong>You:</strong> ${input.value}<br><strong>World:</strong> ${output}</p>`;
+  logDiv.innerHTML = result.log + `<br>Turn ${state.turns}`;
+
+  sceneDiv.scrollTop = sceneDiv.scrollHeight;
+  input.value = "";
+}
+
+// Events
+sendBtn.onclick = () => {
+  if (input.value.trim()) {
+    const result = parseCommand(input.value);
+    execute(result);
+  }
+};
+
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendBtn.click();
+});
+
+// Save / Load / Export
+function saveGame() {
+  localStorage.setItem("SyntaxRealms_v1.1", JSON.stringify(state));
+  alert("Progress saved.");
+}
+
+function loadGame() {
+  const saved = localStorage.getItem("SyntaxRealms_v1.1");
+  if (saved) {
+    state = JSON.parse(saved);
+    sceneDiv.innerHTML += "<p><em>Loaded v1.1 progress. Welcome back.</em></p>";
+    alert("Loaded!");
+  } else {
+    alert("No save found.");
+  }
+}
+
+function exportToChat() {
+  const exportText = `Syntax Realms v1.1 state:\nLocation: ${state.location}\nInventory: ${state.inventory.join(", ")}\nGob friendly: ${state.npcs.gob.friendly}\nTurns: ${state.turns}\nLast: ${state.history.slice(-1)[0]?.cmd || "none"}\n\nPaste to Grok!`;
+  navigator.clipboard.writeText(exportText).then(() => {
+    alert("State copied – paste to Grok chat!");
+  });
+}
+
+// Init
+sceneDiv.scrollTop = sceneDiv.scrollHeight;
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
