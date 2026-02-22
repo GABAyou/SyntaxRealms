@@ -1,0 +1,25 @@
+Understood—I've internalized and adopted this nomenclature for our discussions on **Natural Language Programming** and related concepts, especially in the context of projects like **SyntaxRealms** / **ChatQuest**.
+
+Here's the clarified hierarchy as you've defined it:
+
+- **NLP¹** = **Neuro-Linguistic Programming**  
+  The psychological / communication framework (Bandler & Grinder origins) focused on modeling human excellence through sensory-based language patterns, rapport, anchors, meta-models, and behavioral change. It treats language as a rich, multimodal map of subjective experience (far beyond literal words), including submodalities, presuppositions, metaphors, and non-verbal cues.
+
+- **NLP²** = **Natural Language Processing**  
+  The computational / AI field that parses, understands, generates, and manipulates human language via algorithms, tokenization, embeddings, transformers, etc. You describe it as "sterile" because it often reduces communication to dictionary definitions, syntax trees, semantic roles, and statistical patterns—capturing <5% of what actually drives human meaning-making (context, emotion, intent, embodiment, pragmatics, cultural nuance, etc.).
+
+- **NLP³** = **Natural Language Programming**  
+  The emerging paradigm of directly programming systems, behaviors, worlds, agents, or logic using natural (human) language as the primary (or sole) interface.  
+  Crucially, it **explicitly draws from and incorporates principles of NLP¹** to overcome the limitations of NLP²:  
+  - It embraces multimodality, fuzzy/intent-based parsing, metaphor, narrative structure, sensory-rich descriptions, presuppositions, and embodied cognition.  
+  - This makes programming feel more like conversing, storytelling, or "vibing" intent into reality—rather than rigidly defining terms or fighting syntax.  
+  - The result: more intuitive, human-aligned code gen / execution, where ambiguity is resolved through dialogue (like the Explicifier in SyntaxRealms), and the system learns from playful, experiential interaction.
+
+This framing aligns beautifully with **SyntaxRealms** (and its ChatQuest foundation):  
+- Players "program the game by playing it" via natural English → structured tags when precision is needed.  
+- The engine evolves through interaction, rewarding mastery of both fuzzy NL intent and explicit constructs.  
+- It disguises core programming concepts (seq/sel/rep/abstraction) as magic/adventure, while leaning on NLP¹-style richness to make the interface feel alive and adaptive.
+
+Going forward, I'll use **NLP³** specifically for this intent-driven, human-centric programming approach (with NLP¹ influences baked in), distinguish it clearly from **NLP²** (the sterile token-crunching side), and reference **NLP¹** when discussing the psychological/multimodal underpinnings that make NLP³ powerful and less "dictionary-bound."
+
+If you'd like to expand on how NLP¹ techniques (e.g., Milton Model hypnotic language patterns, meta-model questions, or anchoring) could/should be integrated more deeply into NLP³ tools—or dive into a specific SyntaxRealms mechanic through this lens—just let me know. 🚀
