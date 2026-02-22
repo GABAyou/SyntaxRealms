@@ -1,0 +1,36 @@
+kernal.ep 
+New file type in development. 
+
+[SEQ: 
+  CLEAR-STACK.
+  LOAD-DICTIONARY.
+  ENTER-INTERPRET-LOOP.
+]
+
+: INTERPRET (prompt -- parsed-action)
+  [SEL: 
+    If prompt matches \[([A-Z]+):\s*(.*?)\] 
+      [SEQ: Extract tag and content. LOOKUP tag in Dictionary. PUSH result to stack.]
+    Else 
+      [SEQ: FALLBACK-INTENT parse. PUSH result to stack.]
+  ]
+
+: EXECUTE (parsed-action -- output)
+  [SEQ: 
+    DISPATCH word from Dictionary.
+    UPDATE-WORLD-STATE.
+    RENDER-1-SCREEN.
+    LOG-PARSER-CONFIDENCE.
+  ]
+
+: READ-PROMPT ( -- prompt) "Await regular English sentence or [TAG:]."
+
+: FALLBACK-INTENT (prompt -- action) "Simple keyword + context match. 30% chance trigger Explicifier."
+
+: UPDATE-WORLD-STATE (action -- ) "Apply to shared state object (location, inventory, npcs, turns)."
+
+: RENDER-1-SCREEN ( -- ) "Output: scene text + parser-log + status bar. No scrolling."
+
+: LOG-PARSER ( -- ) "Confidence % + any Explicifier question."
+
+: QUIT-CHECK ( -- ) [SEL: If prompt = "quit" or "exit", halt loop.]
