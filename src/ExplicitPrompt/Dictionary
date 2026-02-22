@@ -1,0 +1,78 @@
+dictionary.ep 
+New file type in development 
+
+: GAME-LOOP 
+  [REP: Until QUIT-CHECK triggers:
+    [SEQ: 
+      READ-PROMPT.
+      INTERPRET.
+      EXECUTE.
+    ]
+  ]
+
+: LOOK-AROUND 
+  [SEQ: 
+    Describe current location.
+    List visible NPCs and items.
+    Show inventory.
+  ]
+
+: GREET-GOB 
+  [SEQ: 
+    Set gob.friendly = true.
+    Output warm greeting.
+    Bonus: +0.1 Parser Level.
+  ]
+
+: NAME-GOB 
+  [SEQ: 
+    Store new name in state.npcs.gob.name.
+    Confirm with Gob dialogue.
+  ]
+
+: ORDER-MINION (command -- )
+  [REP: Until task complete:
+    [SEL: 
+      If command clear: EXECUTE task.
+      Else: Explicifier query once only.
+    ]
+  ]
+
+: ATTACK-UNTIL (target condition -- )
+  [REP: Until condition true:
+    Strike target.
+    Check yield & swear service.
+  ]
+
+: BUILD-FIRE-AND-ROAST 
+  [SEQ: 
+    Gather branches.
+    Light fire.
+    Roast meat.
+    Restore HP for self and Gob.
+  ]
+
+: SCOUT-SHADOWS 
+  [SEQ: 
+    Send Gob.
+    Wait.
+    Receive report.
+  ]
+
+: EXPLICIFIER 
+  [SEQ: 
+    Detect ambiguity.
+    Ask one 2-choice mobile-friendly question.
+    Wait for A/B reply.
+  ]
+
+: SAVE-STATE [SEQ: JSON-stringify state to localStorage or clipboard export.]
+: LOAD-STATE [SEQ: Parse saved state back.]
+
+: BOOT-GAME 
+  [SEQ: 
+    Set location = "cave-with-fire".
+    Spawn Syntax the Owl.
+    Spawn Gob (loyal).
+    GAME-LOOP.
+  ]
